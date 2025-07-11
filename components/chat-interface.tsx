@@ -6,7 +6,19 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { MessageSquare, Send, Bot, User, ExternalLink, ThumbsUp, ThumbsDown, Copy, RefreshCw } from "lucide-react"
+import {
+  MessageSquare,
+  Send,
+  Bot,
+  User,
+  ExternalLink,
+  ThumbsUp,
+  ThumbsDown,
+  Copy,
+  RefreshCw,
+  Maximize2,
+  Minimize2,
+} from "lucide-react"
 
 interface ChatInterfaceProps {
   onProgressUpdate: (progress: number) => void
@@ -37,6 +49,7 @@ export default function ChatInterface({ onProgressUpdate }: ChatInterfaceProps) 
   ])
   const [inputMessage, setInputMessage] = useState("")
   const [isTyping, setIsTyping] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
 
   const sampleResponses = [
@@ -124,31 +137,41 @@ export default function ChatInterface({ onProgressUpdate }: ChatInterfaceProps) 
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-6 w-6" />
+      <Card className="shadow-lg dark:shadow-2xl">
+        <CardHeader className="card-responsive">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6" />
             AI Chatbot Interface
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-responsive">
             Interactive conversational AI with RAG-powered responses and source attribution
           </CardDescription>
         </CardHeader>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className={`grid grid-cols-1 ${isFullscreen ? "lg:grid-cols-1" : "lg:grid-cols-4"} gap-6`}>
         {/* Chat Interface */}
-        <div className="lg:col-span-3">
-          <Card className="h-[600px] flex flex-col">
-            <CardHeader className="pb-3">
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-lg">Chat with AI Assistant</CardTitle>
+        <div className={`${isFullscreen ? "col-span-1" : "lg:col-span-3"}`}>
+          <Card
+            className={`${isFullscreen ? "h-[80vh]" : "h-[500px] sm:h-[600px]"} flex flex-col shadow-lg dark:shadow-2xl`}
+          >
+            <CardHeader className="pb-3 card-responsive">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                <CardTitle className="text-base sm:text-lg">Chat with AI Assistant</CardTitle>
                 <div className="flex gap-2">
-                  <Badge variant="secondary" className="text-xs">
-                    <Bot className="h-3 w-3 mr-1" />
+                  <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                    <Bot className="h-3 w-3" />
                     Online
                   </Badge>
-                  <Button size="sm" variant="outline">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setIsFullscreen(!isFullscreen)}
+                    className="h-8 w-8 p-0"
+                  >
+                    {isFullscreen ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
+                  </Button>
+                  <Button size="sm" variant="outline" className="h-8 w-8 p-0 bg-transparent">
                     <RefreshCw className="h-3 w-3" />
                   </Button>
                 </div>
@@ -161,42 +184,48 @@ export default function ChatInterface({ onProgressUpdate }: ChatInterfaceProps) 
                   {messages.map((message) => (
                     <div
                       key={message.id}
-                      className={`flex gap-3 ${message.type === "user" ? "justify-end" : "justify-start"}`}
+                      className={`flex gap-2 sm:gap-3 ${message.type === "user" ? "justify-end" : "justify-start"}`}
                     >
                       <div
-                        className={`flex gap-3 max-w-[80%] ${message.type === "user" ? "flex-row-reverse" : "flex-row"}`}
+                        className={`flex gap-2 sm:gap-3 max-w-[85%] sm:max-w-[80%] ${message.type === "user" ? "flex-row-reverse" : "flex-row"}`}
                       >
                         <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            message.type === "user" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"
+                          className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                            message.type === "user"
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted text-muted-foreground"
                           }`}
                         >
-                          {message.type === "user" ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+                          {message.type === "user" ? (
+                            <User className="h-3 w-3 sm:h-4 sm:w-4" />
+                          ) : (
+                            <Bot className="h-3 w-3 sm:h-4 sm:w-4" />
+                          )}
                         </div>
 
                         <div
                           className={`rounded-lg p-3 ${
-                            message.type === "user" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-900"
+                            message.type === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
                           }`}
                         >
-                          <p className="text-sm">{message.content}</p>
+                          <p className="text-sm sm:text-base leading-relaxed">{message.content}</p>
 
                           {message.sources && message.sources.length > 0 && (
                             <div className="mt-3 space-y-2">
                               <p className="text-xs font-medium opacity-75">Sources:</p>
                               {message.sources.map((source, index) => (
-                                <div key={index} className="bg-white/10 rounded p-2">
-                                  <div className="flex justify-between items-start">
+                                <div key={index} className="bg-background/10 dark:bg-background/20 rounded p-2">
+                                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
                                     <a
                                       href={`https://${source.url}`}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="text-xs hover:underline flex items-center gap-1"
+                                      className="text-xs hover:underline flex items-center gap-1 break-all"
                                     >
-                                      {source.title}
-                                      <ExternalLink className="h-3 w-3" />
+                                      <span className="line-clamp-2">{source.title}</span>
+                                      <ExternalLink className="h-3 w-3 flex-shrink-0" />
                                     </a>
-                                    <Badge variant="secondary" className="text-xs">
+                                    <Badge variant="secondary" className="text-xs self-start">
                                       {(source.relevance * 100).toFixed(0)}%
                                     </Badge>
                                   </div>
@@ -213,26 +242,26 @@ export default function ChatInterface({ onProgressUpdate }: ChatInterfaceProps) 
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  className="h-6 w-6 p-0"
+                                  className="h-5 w-5 sm:h-6 sm:w-6 p-0"
                                   onClick={() => copyToClipboard(message.content)}
                                 >
-                                  <Copy className="h-3 w-3" />
+                                  <Copy className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                                 </Button>
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  className={`h-6 w-6 p-0 ${message.feedback === "positive" ? "text-green-600" : ""}`}
+                                  className={`h-5 w-5 sm:h-6 sm:w-6 p-0 ${message.feedback === "positive" ? "text-green-600" : ""}`}
                                   onClick={() => handleFeedback(message.id, "positive")}
                                 >
-                                  <ThumbsUp className="h-3 w-3" />
+                                  <ThumbsUp className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                                 </Button>
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  className={`h-6 w-6 p-0 ${message.feedback === "negative" ? "text-red-600" : ""}`}
+                                  className={`h-5 w-5 sm:h-6 sm:w-6 p-0 ${message.feedback === "negative" ? "text-red-600" : ""}`}
                                   onClick={() => handleFeedback(message.id, "negative")}
                                 >
-                                  <ThumbsDown className="h-3 w-3" />
+                                  <ThumbsDown className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                                 </Button>
                               </div>
                             )}
@@ -243,19 +272,19 @@ export default function ChatInterface({ onProgressUpdate }: ChatInterfaceProps) 
                   ))}
 
                   {isTyping && (
-                    <div className="flex gap-3">
-                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                        <Bot className="h-4 w-4" />
+                    <div className="flex gap-2 sm:gap-3">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-muted flex items-center justify-center">
+                        <Bot className="h-3 w-3 sm:h-4 sm:w-4" />
                       </div>
-                      <div className="bg-gray-100 rounded-lg p-3">
+                      <div className="bg-muted rounded-lg p-3">
                         <div className="flex gap-1">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" />
                           <div
-                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                            className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
                             style={{ animationDelay: "0.1s" }}
                           />
                           <div
-                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                            className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
                             style={{ animationDelay: "0.2s" }}
                           />
                         </div>
@@ -265,7 +294,7 @@ export default function ChatInterface({ onProgressUpdate }: ChatInterfaceProps) 
                 </div>
               </ScrollArea>
 
-              <div className="p-4 border-t">
+              <div className="p-4 border-t border-border">
                 <div className="flex gap-2">
                   <Input
                     placeholder="Ask about satellite data, API usage, weather forecasting..."
@@ -273,8 +302,14 @@ export default function ChatInterface({ onProgressUpdate }: ChatInterfaceProps) 
                     onChange={(e) => setInputMessage(e.target.value)}
                     onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
                     disabled={isTyping}
+                    className="text-sm sm:text-base"
                   />
-                  <Button onClick={handleSendMessage} disabled={isTyping || !inputMessage.trim()}>
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={isTyping || !inputMessage.trim()}
+                    size="icon"
+                    className="flex-shrink-0"
+                  >
                     <Send className="h-4 w-4" />
                   </Button>
                 </div>
@@ -284,80 +319,82 @@ export default function ChatInterface({ onProgressUpdate }: ChatInterfaceProps) 
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {[
-                "How to access INSAT-3D data?",
-                "API authentication guide",
-                "Download weather imagery",
-                "Real-time data availability",
-                "Troubleshoot API errors",
-              ].map((question) => (
-                <Button
-                  key={question}
-                  variant="outline"
-                  size="sm"
-                  className="w-full text-left justify-start h-auto p-2 bg-transparent"
-                  onClick={() => setInputMessage(question)}
-                >
-                  <span className="text-xs">{question}</span>
-                </Button>
-              ))}
-            </CardContent>
-          </Card>
+        {!isFullscreen && (
+          <div className="space-y-6">
+            <Card className="shadow-lg dark:shadow-2xl">
+              <CardHeader>
+                <CardTitle className="text-base sm:text-lg">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {[
+                  "How to access INSAT-3D data?",
+                  "API authentication guide",
+                  "Download weather imagery",
+                  "Real-time data availability",
+                  "Troubleshoot API errors",
+                ].map((question) => (
+                  <Button
+                    key={question}
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-left justify-start h-auto p-2 bg-transparent"
+                    onClick={() => setInputMessage(question)}
+                  >
+                    <span className="text-xs line-clamp-2">{question}</span>
+                  </Button>
+                ))}
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Chat Statistics</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Messages</span>
-                <Badge variant="secondary">{messages.length}</Badge>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Response Time</span>
-                <Badge variant="secondary">1.2s avg</Badge>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Satisfaction</span>
-                <Badge variant="secondary">94%</Badge>
-              </div>
-            </CardContent>
-          </Card>
+            <Card className="shadow-lg dark:shadow-2xl">
+              <CardHeader>
+                <CardTitle className="text-base sm:text-lg">Chat Statistics</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Messages</span>
+                  <Badge variant="secondary">{messages.length}</Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Response Time</span>
+                  <Badge variant="secondary">1.2s avg</Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Satisfaction</span>
+                  <Badge variant="secondary">94%</Badge>
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">AI Features</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-green-500 rounded-full" />
-                <span>RAG-powered responses</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-green-500 rounded-full" />
-                <span>Source attribution</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-green-500 rounded-full" />
-                <span>Intent detection</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-green-500 rounded-full" />
-                <span>Context awareness</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-green-500 rounded-full" />
-                <span>Multi-modal support</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            <Card className="shadow-lg dark:shadow-2xl">
+              <CardHeader>
+                <CardTitle className="text-base sm:text-lg">AI Features</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="w-2 h-2 bg-green-500 rounded-full" />
+                  <span>RAG-powered responses</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="w-2 h-2 bg-green-500 rounded-full" />
+                  <span>Source attribution</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="w-2 h-2 bg-green-500 rounded-full" />
+                  <span>Intent detection</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="w-2 h-2 bg-green-500 rounded-full" />
+                  <span>Context awareness</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="w-2 h-2 bg-green-500 rounded-full" />
+                  <span>Multi-modal support</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   )
